@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, ArrowRight, Network, GitCompare, Shapes } from 'lucide-react';
 import { DIAGRAMS } from './diagrams/registry';
+import { DiagramFrame } from './DiagramsView';
 import type { Store } from '../store/useStore';
 import { CATEGORIES } from '../data/categories';
 import { StatusBadge } from './Badges';
@@ -9,6 +10,7 @@ const EXAMPLES = [
   'Wie hängen CLS, GWA und § 14a zusammen?',
   'Was ist der Unterschied zwischen präventivem und netzorientiertem Steuern?',
   'Erklär mir das Gartenzaunprinzip an einem Beispielhaushalt.',
+  'Was ist der Unterschied zwischen aEMT und pEMT?',
   'Wie passt Energy Sharing ins Big Picture?',
 ];
 
@@ -42,6 +44,8 @@ export default function Dashboard({ store }: { store: Store }) {
         </div>
       </section>
 
+      <DiagramFrame id="rollen" onOpenTopic={openTopic} />
+
       <section className="grid sm:grid-cols-3 gap-4">
         <button onClick={() => setView('bigpicture')} className="text-left rounded-2xl bg-white border border-slate-200 p-5 hover:shadow-md transition-shadow">
           <Network className="text-sky-600" />
@@ -64,7 +68,7 @@ export default function Dashboard({ store }: { store: Store }) {
         <h2 className="text-lg font-semibold text-slate-800 mb-1">Schaubilder zum Ausprobieren</h2>
         <p className="text-sm text-slate-500 mb-4">Interaktive Darstellungen – Regler bewegen, Modi umschalten, Schritte durchklicken.</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {DIAGRAMS.map(d => (
+          {DIAGRAMS.filter(d => d.id !== 'rollen').map(d => (
             <button key={d.id} onClick={() => openTopic(d.topics[0])} className="text-left rounded-xl bg-white border border-slate-200 p-4 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-2 font-medium text-slate-800"><Shapes size={16} className="text-slate-400" />{d.title}</div>
               <div className="text-sm text-slate-500 mt-1">{d.question}</div>

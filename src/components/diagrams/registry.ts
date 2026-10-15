@@ -10,10 +10,35 @@ export interface DiagramInfo {
   question: string;
   /** Themen, auf deren Seite das Schaubild erscheint */
   topics: string[];
+  /** Themen, bei denen es das Hauptschaubild ist (zusätzlich zu topics[0]) */
+  primary?: string[];
   Component: LazyExoticComponent<ComponentType<DiagramProps>>;
 }
 
 export const DIAGRAMS: DiagramInfo[] = [
+  {
+    id: 'rollen',
+    title: 'Rollen im Energiesystem: EFH & MFH',
+    question: 'Wer macht was – vom Gesetz bis zur Wallbox in der Tiefgarage?',
+    topics: ['msb', 'vnb', 'gmsb', 'wmsb', 'gwa', 'aemt', 'pemt', 'emt', 'smgw', 'mieterstrom', 'ggv', 'lieferant', 'bsi', 'enwg', 'msbg', 'eeg', 'direktvermarktung', 'steuve'],
+    primary: ['msb', 'vnb', 'mieterstrom', 'ggv', 'lieferant', 'bsi', 'enwg', 'msbg', 'eeg', 'direktvermarktung'],
+    Component: lazy(() => import('./RollenLandschaftDiagram')),
+  },
+  {
+    id: 'emt',
+    title: 'aEMT vs. pEMT',
+    question: 'Wer spricht ins Haus hinein – und wer bekommt nur Post?',
+    topics: ['aemt', 'pemt', 'emt', 'cls', 'smgw'],
+    primary: ['emt'],
+    Component: lazy(() => import('./EmtDiagram')),
+  },
+  {
+    id: 'msbrollen',
+    title: 'VNB, gMSB, wMSB',
+    question: 'Wer ist mein Messstellenbetreiber – und was unterscheidet die Rollen?',
+    topics: ['gmsb', 'wmsb', 'msb', 'vnb'],
+    Component: lazy(() => import('./MsbRollenDiagram')),
+  },
   {
     id: 'gartenzaun',
     title: 'Gartenzaunprinzip',

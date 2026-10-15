@@ -31,7 +31,7 @@ export default function TopicForm({ initial, existingIds, onCancel, onSave }: Pr
     onSave({
       id, title: title.trim(), short: short.trim() || undefined, category, status, since: since.trim() || undefined,
       summary: summary.trim(), explanation: explanation.trim(), keyFacts: lines(keyFacts), legalRefs: lines(legalRefs),
-      notes: initial?.notes, createdAt: initial?.createdAt ?? today, updatedAt: today, source: initial?.source ?? 'manuell',
+      notes: initial?.notes, customized: initial ? true : undefined, createdAt: initial?.createdAt ?? today, updatedAt: today, source: initial?.source ?? 'manuell',
     });
   };
 

@@ -24,7 +24,7 @@ export default function TopicView({ store }: { store: Store }) {
   const conns = topic ? connectionsOf(kb, topic.id) : [];
   const diagrams = topic ? diagramsForTopic(topic.id) : [];
   // Hauptschaubild: das, dessen erstes Thema dieses ist – sonst das erste passende
-  const mainDiagram = diagrams.find(d => d.topics[0] === topic?.id) ?? diagrams[0];
+  const mainDiagram = diagrams.find(d => d.topics[0] === topic?.id || (topic && d.primary?.includes(topic.id))) ?? diagrams[0];
   const otherDiagrams = diagrams.filter(d => d !== mainDiagram);
   const abgrenzungen = conns.filter(c => c.relation.type === 'abgrenzung');
   const others = conns.filter(c => c.relation.type !== 'abgrenzung');

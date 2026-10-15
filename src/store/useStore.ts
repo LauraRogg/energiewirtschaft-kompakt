@@ -25,8 +25,31 @@ function writeLocal(key: string, value: unknown) {
 const now = () => new Date().toISOString().slice(0, 10);
 const newId = () => Math.random().toString(36).slice(2, 10);
 
+/**
+ * Bringt eine gespeicherte Wissenslandkarte auf den Stand des Startwissens:
+ * neue Basis-Themen und -Beziehungen kommen dazu, unveränderte Basis-Themen werden aktualisiert.
+ * Eigene Themen, bearbeitete Themen und Notizen bleiben unangetastet.
+ */
+export function migrate(kb: KnowledgeBase): KnowledgeBase {
+  if ((kb.version ?? 1) >= INITIAL_KNOWLEDGE.version) return kb;
+  const byId = new Map(kb.topics.map(t => [t.id, t]));
+  const topics = kb.topics.map(t => {
+    const seed = INITIAL_KNOWLEDGE.topics.find(s => s.id === t.id);
+    return seed && t.source === 'basis' && !t.customized ? { ...seed, notes: t.notes } : t;
+  });
+  INITIAL_KNOWLEDGE.topics.forEach(s => { if (!byId.has(s.id)) topics.push(s); });
+  const ids = new Set(topics.map(t => t.id));
+  const key = (r: { source: string; type: string; target: string }) => `${r.source}|${r.type}|${r.target}`;
+  const have = new Set(kb.relations.map(key));
+  const relations = [
+    ...kb.relations,
+    ...INITIAL_KNOWLEDGE.relations.filter(r => !have.has(key(r)) && ids.has(r.source) && ids.has(r.target)).map(r => ({ ...r, id: newId() })),
+  ];
+  return { version: INITIAL_KNOWLEDGE.version, topics, relations };
+}
+
 export function useStore() {
-  const [kb, setKb] = useState<KnowledgeBase>(() => readLocal(LOCAL_KEY, INITIAL_KNOWLEDGE));
+  const [kb, setKb] = useState<KnowledgeBase>(() => migrate(readLocal(LOCAL_KEY, INITIAL_KNOWLEDGE)));
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>('dashboard');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -40,17 +63,6 @@ export function useStore() {
   const pendingMessage = useRef('Wissenslandkarte aktualisiert');
   const dirty = useRef(false);
   const saveTimer = useRef<number | undefined>(undefined);
-
-  // Initial laden: GitHub ist die Quelle der Wahrheit, lokal ist Cache/Fallback
-  useEffect(() => {
-    loadFromGitHub()
-      .then(({ data, sha: s }) => {
-        sha.current = s;
-        if (data) setKb(data);
-      })
-      .catch(err => console.warn('GitHub-Laden fehlgeschlagen, nutze lokale Daten:', err))
-      .finally(() => setLoading(false));
-  }, []);
 
   useEffect(() => { writeLocal(LOCAL_KEY, kb); }, [kb]);
   useEffect(() => { writeLocal(CHAT_KEY, chat); }, [chat]);
@@ -80,6 +92,24 @@ export function useStore() {
       setSaveError(msg === 'UNAUTHORIZED' ? 'GitHub-Token ungültig' : msg);
     }
   }, []);
+
+  // Initial laden: GitHub ist die Quelle der Wahrheit, lokal ist Cache/Fallback
+  useEffect(() => {
+    loadFromGitHub()
+      .then(({ data, sha: s }) => {
+        sha.current = s;
+        if (!data) return;
+        const migrated = migrate(data);
+        if (migrated !== data) {
+          // Neues Startwissen gleich ins Repo zurückschreiben
+          pendingMessage.current = `Startwissen auf Version ${migrated.version} aktualisiert`;
+          if (getToken()) saveTimer.current = window.setTimeout(() => flush(migrated), 1500);
+        }
+        setKb(migrated);
+      })
+      .catch(err => console.warn('GitHub-Laden fehlgeschlagen, nutze lokale Daten:', err))
+      .finally(() => setLoading(false));
+  }, [flush]);
 
   const commit = useCallback((updater: (prev: KnowledgeBase) => KnowledgeBase, message: string) => {
     setKb(prev => {

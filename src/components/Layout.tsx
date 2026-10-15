@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { LayoutDashboard, Network, BookOpen, GitCompare, Sparkles, Shapes, CalendarRange, Settings, CheckCircle2, Loader2, AlertCircle, Eye, Zap } from 'lucide-react';
+import { LayoutDashboard, Network, BookOpen, GitCompare, Sparkles, Shapes, CalendarRange, Scale, Settings, CheckCircle2, Loader2, AlertCircle, Eye, Zap } from 'lucide-react';
 import type { View } from '../types';
 import type { SaveStatus } from '../store/useStore';
 
@@ -9,6 +9,7 @@ const NAV: { id: View; label: string; icon: typeof Network }[] = [
   { id: 'thema', label: 'Themen', icon: BookOpen },
   { id: 'vergleich', label: 'Zusammenhänge', icon: GitCompare },
   { id: 'schaubilder', label: 'Schaubilder', icon: Shapes },
+  { id: 'gesetze', label: 'Gesetze', icon: Scale },
   { id: 'zeitstrahl', label: 'Zeitstrahl', icon: CalendarRange },
   { id: 'assistent', label: 'Einordnen (KI)', icon: Sparkles },
 ];

@@ -40,6 +40,8 @@ export interface Topic {
   updatedAt: string;
   /** Herkunft: Startwissen, manuell oder vom Assistenten vorgeschlagen */
   source: 'basis' | 'manuell' | 'assistent';
+  /** true, sobald ein Basis-Thema im Formular bearbeitet wurde – dann wird es bei Updates nicht überschrieben */
+  customized?: boolean;
 }
 
 export type RelationType =
@@ -75,4 +77,4 @@ export interface KnowledgeBase {
   relations: Relation[];
 }
 
-export type View = 'dashboard' | 'bigpicture' | 'thema' | 'vergleich' | 'schaubilder' | 'zeitstrahl' | 'assistent';
+export type View = 'dashboard' | 'bigpicture' | 'thema' | 'vergleich' | 'schaubilder' | 'gesetze' | 'zeitstrahl' | 'assistent';

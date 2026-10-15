@@ -172,11 +172,11 @@ const seeds: Seed[] = [
     explanation:
       'Der Messstellenbetreiber ist für Einbau, Betrieb und Wartung der Messtechnik und für die Messwertübermittlung zuständig. Grundzuständiger MSB ist standardmäßig der örtliche Verteilnetzbetreiber bzw. eine Tochter. Kunden können stattdessen einen wettbewerblichen MSB beauftragen.\n\nBeim intelligenten Messsystem braucht der MSB zusätzlich einen Gateway-Administrator – das kann er selbst sein oder ein beauftragter Dienstleister.',
     keyFacts: [
-      'gMSB (grundzuständig) vs. wMSB (wettbewerblich)',
+      'gMSB (grundzuständig, meist VNB-Tochter) vs. wMSB (frei gewählt)',
       'Verantwortet Rollout und Betrieb der iMSys',
       'Bedient sich eines Gateway-Administrators',
     ],
-    legalRefs: ['MsbG'],
+    legalRefs: ['MsbG §§ 3, 5, 6'],
   },
   {
     id: 'gwa',
@@ -203,10 +203,11 @@ const seeds: Seed[] = [
     status: 'etabliert',
     summary: 'Jeder, der über das Smart-Meter-Gateway Daten empfängt oder Anlagen steuert – z. B. Netzbetreiber, Lieferant, Direktvermarkter.',
     explanation:
-      'Externe Marktteilnehmer (EMT) sind die "Kunden" des Smart-Meter-Gateways: Sie bekommen Messwerte oder bauen über den CLS-Kanal eine gesicherte Verbindung zu Anlagen auf. Welcher EMT was darf, konfiguriert der Gateway-Administrator.\n\nIm Kontext von § 14a ist der Verteilnetzbetreiber der EMT, der steuert; beim dynamischen Tarif ist der Lieferant der EMT, der die Messwerte bekommt.',
+      'Externe Marktteilnehmer (EMT) sind die "Kunden" des Smart-Meter-Gateways: Sie bekommen Messwerte oder bauen über den CLS-Kanal eine gesicherte Verbindung zu Anlagen auf. Welcher EMT was darf, konfiguriert der Gateway-Administrator.\n\nMan unterscheidet zwei Arten: Der aktive EMT (aEMT) baut über den CLS-Kanal selbst Verbindungen ins Haus auf, um zu steuern. Der passive EMT (pEMT) bekommt nur Messwerte zugeschickt.\n\nIm Kontext von § 14a ist der Verteilnetzbetreiber aEMT, beim dynamischen Tarif ist der Lieferant pEMT.',
     keyFacts: [
       'Empfängt Daten oder steuert über das SMGW',
       'Rechte werden vom GWA konfiguriert',
+      'Zwei Arten: aEMT (aktiv, steuert) und pEMT (passiv, empfängt)',
       'Beispiele: VNB, Lieferant, Direktvermarkter',
     ],
     legalRefs: ['MsbG'],
@@ -547,6 +548,140 @@ const seeds: Seed[] = [
     keyFacts: ['Gleichzeitige Erzeugung → Spitzen', 'iMSys-Pflicht ab 7 kW', 'Solarspitzengesetz: 60 %-Regel ohne Steuerung'],
     legalRefs: ['EEG', 'MsbG'],
   },
+
+  // ── Ergänzungen v2: Rollen im Messwesen, EMT-Arten, Gesetze, Gebäudemodelle ──
+  {
+    id: 'aemt',
+    title: 'Aktiver externer Marktteilnehmer',
+    short: 'aEMT',
+    category: 'akteure',
+    status: 'in-umsetzung',
+    summary: 'Ein EMT, der über das Smart-Meter-Gateway aktiv eine Verbindung zu Geräten im Haus aufbaut – um zu steuern oder Daten direkt vom Gerät abzurufen.',
+    explanation:
+      'Das "a" steht für aktiv: Der aEMT initiiert über den CLS-Kanal des Smart-Meter-Gateways eine gesicherte Verbindung (TLS-Proxy) zu einem CLS-Gerät im Heimnetz, z. B. einer Steuerbox, einem EMS oder einer Wechselrichter-Schnittstelle. So kann er Schaltbefehle oder Leistungsvorgaben senden.\n\nTypische aEMT sind der Verteilnetzbetreiber für die Steuerung nach § 14a EnWG, ein Direktvermarkter, der eine PV-Anlage fernsteuert, oder ein Aggregator bzw. EMS-Anbieter. Der Gateway-Administrator muss den aEMT im Gateway hinterlegen und den Kanal freischalten; der aEMT braucht dafür ein Zertifikat aus der Smart-Metering-PKI.\n\nMerkhilfe: aEMT = "spricht in das Haus hinein".',
+    keyFacts: [
+      'Baut aktiv Verbindungen über den CLS-Kanal auf',
+      'Zweck: Steuern, Schalten, Gerätedaten abrufen',
+      'Beispiele: VNB (§ 14a), Direktvermarkter, Aggregator',
+      'Braucht SM-PKI-Zertifikat und Freischaltung durch den GWA',
+    ],
+    legalRefs: ['MsbG', 'BSI TR-03109-1'],
+  },
+  {
+    id: 'pemt',
+    title: 'Passiver externer Marktteilnehmer',
+    short: 'pEMT',
+    category: 'akteure',
+    status: 'etabliert',
+    summary: 'Ein EMT, der vom Smart-Meter-Gateway Messwerte zugeschickt bekommt, aber selbst keine Verbindung ins Haus aufbaut.',
+    explanation:
+      'Das "p" steht für passiv: Der pEMT empfängt Daten, die das Smart-Meter-Gateway nach seinen Auswertungsprofilen versendet, z. B. Viertelstundenwerte für die Abrechnung eines dynamischen Tarifs oder Netzzustandsdaten für den Netzbetreiber. Er kann Geräte im Haus nicht erreichen.\n\nTypische pEMT sind Lieferanten, Netzbetreiber (für Abrechnung und Netzzustand) oder der Messstellenbetreiber selbst. Welche Daten an wen gehen dürfen, regelt das MsbG (Datenkommunikation, berechtigte Stellen); technisch setzt der Gateway-Administrator es in den Profilen um.\n\nMerkhilfe: pEMT = "bekommt Post aus dem Haus".\n\nWichtig: Dieselbe Organisation kann beides sein – der VNB ist pEMT für Messdaten und aEMT, wenn er nach § 14a steuert.',
+    keyFacts: [
+      'Empfängt Daten vom SMGW, baut keine Verbindung ins Haus auf',
+      'Beispiele: Lieferant, VNB (Abrechnung, Netzzustand)',
+      'Welche Daten fließen, regelt das MsbG',
+      'Ein Akteur kann gleichzeitig pEMT und aEMT sein',
+    ],
+    legalRefs: ['MsbG', 'BSI TR-03109-1'],
+  },
+  {
+    id: 'gmsb',
+    title: 'Grundzuständiger Messstellenbetreiber',
+    short: 'gMSB',
+    category: 'akteure',
+    status: 'etabliert',
+    summary: 'Der Messstellenbetreiber "von Amts wegen": standardmäßig der örtliche Verteilnetzbetreiber (oft über eine Tochter). Er muss den Rollout durchführen und ist an Preisobergrenzen gebunden.',
+    explanation:
+      'Solange niemand etwas anderes wählt, ist der grundzuständige Messstellenbetreiber zuständig. Das ist der Betreiber des Verteilnetzes; er kann die Grundzuständigkeit aber in einem geregelten Verfahren auf ein anderes Unternehmen übertragen.\n\nDer gMSB hat Pflichten, die ein wettbewerblicher MSB nicht hat: Er muss in seinem Gebiet den gesetzlichen Rollout-Fahrplan für intelligente Messsysteme und moderne Messeinrichtungen umsetzen und darf dafür höchstens die gesetzlichen Preisobergrenzen verlangen.\n\nWichtig zur Abgrenzung: Auch wenn gMSB und VNB oft zum selben Konzern gehören, sind es unterschiedliche Rollen – Messen ist nicht Netzbetrieb.',
+    keyFacts: [
+      'Standardfall: VNB bzw. dessen Tochter',
+      'Grundzuständigkeit ist übertragbar',
+      'Pflicht zum Rollout (Pflicht- und optionale Einbaufälle)',
+      'An Preisobergrenzen gebunden',
+    ],
+    legalRefs: ['MsbG § 2', 'MsbG § 3', 'MsbG §§ 29 ff.'],
+  },
+  {
+    id: 'wmsb',
+    title: 'Wettbewerblicher Messstellenbetreiber',
+    short: 'wMSB',
+    category: 'akteure',
+    status: 'etabliert',
+    summary: 'Ein frei gewählter Messstellenbetreiber, der statt des gMSB die Messstelle übernimmt – beauftragt vom Anschlussnutzer (z. B. Mieter) oder vom Anschlussnehmer (Eigentümer) für die ganze Liegenschaft.',
+    explanation:
+      'Das MsbG gibt zwei Wahlrechte:\n\nAnschlussnutzer (wer den Strom verbraucht, z. B. die Mieterin) dürfen einen wettbewerblichen MSB für ihre Messstelle beauftragen (§ 5 MsbG).\n\nAnschlussnehmer (Eigentümer des Gebäudes) dürfen für die gesamte Liegenschaft einen MSB wählen (§ 6 MsbG, "Liegenschaftsmodell") – typischerweise gebündelt mit weiteren Sparten wie Gas oder Wärme und unter Bedingungen, u. a. ohne Mehrkosten für die Anschlussnutzer.\n\nDer wMSB übernimmt dann alle Aufgaben des MSB inklusive Gateway-Administration (selbst oder über einen Dienstleister). Er ist nicht an die Preisobergrenzen gebunden, muss aber die technischen und Sicherheitsvorgaben genauso erfüllen. Gerade in Mehrfamilienhäusern, bei Mieterstrom oder gemeinschaftlicher Gebäudeversorgung ist der wMSB häufig.',
+    keyFacts: [
+      'Wahlrecht Anschlussnutzer (§ 5) und Anschlussnehmer (§ 6)',
+      '§ 6: ein MSB für die ganze Liegenschaft, oft spartenübergreifend',
+      'Keine Preisobergrenzen, aber gleiche Technik- und Sicherheitspflichten',
+      'Häufig bei MFH, Mieterstrom, GGV',
+    ],
+    legalRefs: ['MsbG § 5', 'MsbG § 6'],
+  },
+  {
+    id: 'eeg',
+    title: 'Erneuerbare-Energien-Gesetz',
+    short: 'EEG',
+    category: 'recht',
+    status: 'etabliert',
+    summary: 'Regelt Ausbau, Netzanschluss, Vorrang und Förderung von Strom aus erneuerbaren Energien – also die Erzeugungsseite.',
+    explanation:
+      'Das EEG beantwortet: Wie viel Erneuerbare sollen gebaut werden, wie kommen sie ans Netz und wie werden sie bezahlt? Es legt Ausbauziele fest (80 % Erneuerbare am Bruttostromverbrauch bis 2030), verpflichtet Netzbetreiber zum vorrangigen Anschluss und zur Abnahme und regelt die Zahlungen: Einspeisevergütung für kleine Anlagen, Marktprämie in der Direktvermarktung, Ausschreibungen für größere Anlagen.\n\nSeit Juli 2022 gibt es keine EEG-Umlage mehr auf dem Strompreis; die Förderung wird aus dem Bundeshaushalt finanziert (Energiefinanzierungsgesetz).\n\nAbgrenzung: EnWG = Spielregeln für Netze und Markt, MsbG = Mess- und Kommunikationsinfrastruktur, EEG = Förderung und Integration der Erneuerbaren. Viele Neuerungen ändern mehrere Gesetze gleichzeitig (z. B. das Solarspitzengesetz).',
+    keyFacts: [
+      'Ausbauziel: 80 % Erneuerbare bis 2030',
+      'Anschluss- und Abnahmevorrang für EE-Anlagen',
+      'Einspeisevergütung, Marktprämie, Ausschreibungen',
+      'Keine EEG-Umlage mehr seit 07/2022',
+    ],
+    legalRefs: ['EEG 2023', 'EnFG'],
+  },
+  {
+    id: 'bsi',
+    title: 'Bundesamt für Sicherheit in der Informationstechnik',
+    short: 'BSI',
+    category: 'akteure',
+    status: 'etabliert',
+    summary: 'Setzt die Sicherheitsstandards für Smart-Meter-Gateways und Gateway-Administratoren und zertifiziert sie.',
+    explanation:
+      'Das BSI schreibt über Schutzprofile und Technische Richtlinien (TR-03109) vor, wie ein Smart-Meter-Gateway aufgebaut sein muss, wie es kommuniziert und wie Gateway-Administratoren arbeiten. Gateways und GWA müssen zertifiziert sein. Die Zertifikate für die verschlüsselte Kommunikation stammen aus der Smart-Metering-PKI.\n\nAbgrenzung zur BNetzA: Die BNetzA regelt Markt und Netz (wer darf was, zu welchem Preis), das BSI regelt Sicherheit und Technik der Messinfrastruktur.',
+    keyFacts: ['TR-03109 und Schutzprofile für SMGW', 'Zertifiziert SMGW und GWA', 'Sicherheit ≠ Marktregulierung (BNetzA)'],
+    legalRefs: ['MsbG §§ 19 ff.', 'BSI TR-03109'],
+  },
+  {
+    id: 'direktvermarktung',
+    title: 'Direktvermarktung',
+    category: 'markt',
+    status: 'etabliert',
+    summary: 'Der Strom einer EE-Anlage wird über einen Direktvermarkter an der Börse verkauft; der Betreiber erhält zusätzlich die Marktprämie. Für Neuanlagen ab 100 kW Pflicht.',
+    explanation:
+      'Statt einer festen Einspeisevergütung verkauft ein Direktvermarkter den Strom am Markt. Der Anlagenbetreiber erhält den Markterlös plus die Marktprämie nach EEG. Dafür muss die Anlage fernsteuerbar sein, damit der Direktvermarkter z. B. bei negativen Preisen abregeln kann.\n\nÜber ein intelligentes Messsystem tritt der Direktvermarkter dabei als aktiver externer Marktteilnehmer (aEMT) auf.',
+    keyFacts: ['Pflicht für Neuanlagen ab 100 kW', 'Markterlös + Marktprämie', 'Anlage muss fernsteuerbar sein', 'Direktvermarkter = typischer aEMT'],
+    legalRefs: ['EEG § 20', 'EEG § 10b'],
+  },
+  {
+    id: 'mieterstrom',
+    title: 'Mieterstrom',
+    category: 'markt',
+    status: 'etabliert',
+    summary: 'PV-Strom vom Dach wird direkt an Mieter im Gebäude geliefert – der Anbieter übernimmt auch die Reststromversorgung.',
+    explanation:
+      'Beim Mieterstrom liefert ein Anbieter (Vermieter oder Dienstleister) Strom aus einer Solaranlage auf oder am Gebäude an die Bewohner, ohne Nutzung des öffentlichen Netzes. Er ist Vollversorger: Wenn die Sonne nicht scheint, liefert er auch den Reststrom.\n\nDer Mieterstromvertrag darf nicht Teil des Mietvertrags sein, und der Preis ist gedeckelt (höchstens 90 % des Grundversorgungstarifs). Für den PV-Strom gibt es einen Mieterstromzuschlag nach EEG.\n\nIm Messkonzept braucht es Zähler für jede Wohnung und den Netzbezug – oft übernimmt das ein wettbewerblicher MSB.',
+    keyFacts: ['Anbieter ist Vollversorger (inkl. Reststrom)', 'Preis max. 90 % der Grundversorgung', 'Nicht an den Mietvertrag gekoppelt', 'Mieterstromzuschlag nach EEG'],
+    legalRefs: ['EnWG § 42a', 'EEG § 21'],
+  },
+  {
+    id: 'ggv',
+    title: 'Gemeinschaftliche Gebäudeversorgung',
+    short: 'GGV',
+    category: 'markt',
+    status: 'neu',
+    since: '2024',
+    summary: 'Schlanke Alternative zum Mieterstrom: PV-Strom wird im Gebäude nach einem Aufteilungsschlüssel verteilt, Reststrom kauft jede Partei bei ihrem eigenen Lieferanten.',
+    explanation:
+      'Mit dem Solarpaket I (2024) wurde die gemeinschaftliche Gebäudeversorgung eingeführt. Der Betreiber der Gebäude-PV muss – anders als beim Mieterstrom – keine Vollversorgung anbieten. Jede teilnehmende Partei behält ihren eigenen Stromliefervertrag für den Reststrom; der Solarstrom wird viertelstündlich nach einem vereinbarten Schlüssel rechnerisch aufgeteilt.\n\nDafür braucht es eine viertelstündliche Messung, in der Praxis also intelligente Messsysteme – ein klassischer Anwendungsfall für den Messstellenbetreiber im Mehrfamilienhaus.',
+    keyFacts: ['Keine Vollversorgungspflicht', 'Aufteilung nach Schlüssel, je ¼ Stunde', 'Reststrom vom eigenen Lieferanten', 'Setzt viertelstündliche Messung voraus'],
+    legalRefs: ['EnWG § 42b'],
+  },
 ];
 
 let n = 0;
@@ -627,10 +762,45 @@ const relations: Relation[] = [
   r('wallbox', 'teil-von', 'steuve', 'Nicht-öffentliche Ladepunkte über 4,2 kW sind steuerbare Verbrauchseinrichtungen.'),
   r('speicher', 'teil-von', 'steuve', 'Speicher sind beim Netzbezug über 4,2 kW steuerbare Verbrauchseinrichtungen.'),
   r('steuve', 'beeinflusst', 'netzengpass', 'Hohe, gleichzeitige Bezugsleistung vieler SteuVE kann Ortsnetze überlasten.'),
+
+  // ── Ergänzungen v2 ──
+  r('aemt', 'teil-von', 'emt', 'aEMT ist eine Ausprägung des externen Marktteilnehmers: der, der aktiv ins Haus kommuniziert.'),
+  r('pemt', 'teil-von', 'emt', 'pEMT ist eine Ausprägung des externen Marktteilnehmers: der, der nur Daten empfängt.'),
+  r('aemt', 'abgrenzung', 'pemt', 'aEMT baut aktiv Verbindungen über den CLS-Kanal auf (steuern, schalten). pEMT empfängt nur Messwerte, die das SMGW versendet. Ein Akteur kann beide Rollen haben.'),
+  r('aemt', 'setzt-voraus', 'cls', 'Ohne freigeschalteten CLS-Kanal kann ein aEMT kein Gerät erreichen.'),
+  r('pemt', 'setzt-voraus', 'smgw', 'Der pEMT bekommt seine Daten vom Smart-Meter-Gateway.'),
+  r('gwa', 'ermoeglicht', 'aemt', 'Der GWA hinterlegt den aEMT im Gateway und schaltet den Kanal frei.'),
+  r('vnb', 'teil-von', 'aemt', 'Bei der Steuerung nach § 14a handelt der VNB als aEMT.'),
+  r('vnb', 'teil-von', 'pemt', 'Für Abrechnungs- und Netzzustandsdaten ist der VNB pEMT.'),
+  r('lieferant', 'teil-von', 'pemt', 'Der Lieferant erhält z. B. Viertelstundenwerte für den dynamischen Tarif.'),
+  r('direktvermarktung', 'setzt-voraus', 'aemt', 'Der Direktvermarkter steuert die Anlage fern – über das iMSys als aEMT.'),
+  r('gmsb', 'teil-von', 'msb', 'Der gMSB ist der Messstellenbetreiber, der ohne Wahl zuständig ist.'),
+  r('wmsb', 'teil-von', 'msb', 'Der wMSB ist ein frei gewählter Messstellenbetreiber.'),
+  r('gmsb', 'abgrenzung', 'wmsb', 'gMSB: zuständig ohne Wahl, Rollout-Pflicht, Preisobergrenzen. wMSB: gewählt nach § 5 oder § 6 MsbG, keine Preisobergrenzen, aber gleiche Technik- und Sicherheitspflichten.'),
+  r('vnb', 'betreibt', 'gmsb', 'Standardmäßig ist der VNB (oft über eine Tochter) grundzuständiger MSB.'),
+  r('vnb', 'abgrenzung', 'msb', 'VNB betreibt das Netz, MSB betreibt die Messstelle. Auch im selben Konzern sind es getrennte Rollen.'),
+  r('msbg', 'regelt', 'gmsb', 'Grundzuständigkeit und ihre Übertragung regelt das MsbG.'),
+  r('msbg', 'regelt', 'wmsb', 'Die Wahlrechte für einen wMSB stehen in §§ 5 und 6 MsbG.'),
+  r('gmsb', 'betreibt', 'imsys', 'Der gMSB muss den Rollout nach dem gesetzlichen Fahrplan umsetzen.'),
+  r('eeg', 'regelt', 'pv', 'Netzanschluss, Vorrang und Vergütung von PV-Anlagen stehen im EEG.'),
+  r('eeg', 'regelt', 'direktvermarktung', 'Marktprämie und Pflicht zur Direktvermarktung regelt das EEG.'),
+  r('eeg', 'regelt', 'negpreise', 'Verringerung der Förderung bei negativen Preisen: § 51 EEG.'),
+  r('eeg', 'abgrenzung', 'enwg', 'EEG: Förderung und Integration der Erneuerbaren (Erzeugung). EnWG: Spielregeln für Netze, Netzzugang, Lieferung und Regulierung.'),
+  r('msbg', 'abgrenzung', 'enwg', 'MsbG: Messstellen, Smart Meter, Datenkommunikation. EnWG: Netze und Markt. § 14a EnWG nutzt die Infrastruktur, die das MsbG regelt.'),
+  r('solarspitzen', 'beeinflusst', 'eeg', 'Das Solarspitzengesetz änderte u. a. das EEG (negative Preise, Einspeisebegrenzung).'),
+  r('bsi', 'regelt', 'smgw', 'Schutzprofile und TR-03109 legen fest, wie das SMGW gebaut und betrieben wird.'),
+  r('bsi', 'regelt', 'gwa', 'GWA müssen nach BSI-Vorgaben zertifiziert sein.'),
+  r('bsi', 'abgrenzung', 'bnetza', 'BSI: IT-Sicherheit und Technik der Messinfrastruktur. BNetzA: Markt- und Netzregulierung.'),
+  r('enwg', 'regelt', 'mieterstrom', 'Der Mieterstromvertrag ist in § 42a EnWG geregelt.'),
+  r('enwg', 'regelt', 'ggv', 'Die gemeinschaftliche Gebäudeversorgung steht in § 42b EnWG.'),
+  r('mieterstrom', 'abgrenzung', 'ggv', 'Mieterstrom: Anbieter ist Vollversorger inkl. Reststrom, Preisdeckel. GGV: nur Aufteilung des PV-Stroms, Reststrom vom eigenen Lieferanten.'),
+  r('ggv', 'setzt-voraus', 'imsys', 'Die viertelstündliche Aufteilung braucht entsprechende Messung.'),
+  r('wmsb', 'ermoeglicht', 'ggv', 'Im MFH organisiert oft ein wMSB das Messkonzept für Mieterstrom oder GGV.'),
+  r('pv', 'ermoeglicht', 'mieterstrom', 'Mieterstrom basiert auf PV auf oder am Gebäude.'),
 ];
 
 export const INITIAL_KNOWLEDGE: KnowledgeBase = {
-  version: 1,
+  version: 2,
   topics: seeds.map(s => ({ ...s, createdAt: STAMP, updatedAt: STAMP, source: 'basis' as const })),
   relations,
 };

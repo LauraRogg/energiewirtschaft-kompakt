@@ -7,11 +7,12 @@ Ziel: neue Gesetze, Festlegungen und Innovationen schnell **einordnen**, **verkn
 
 | Ansicht | Wofür |
 |---|---|
-| **Übersicht** | Einstieg: Frage stellen, Ebenen der Energiewirtschaft, Themen „in Bewegung“ |
+| **Übersicht** | Einstieg: Frage stellen, großes Rollenbild (EFH & MFH), Ebenen, Themen „in Bewegung“ |
 | **Big Picture** | Netzwerk aller Themen, farbig nach Ebene – frei oder nach Ebenen geordnet; Klick zeigt Verbindungen mit Erklärung |
 | **Themen** | Erklärung, „Zum Merken“, Abgrenzungen, Zusammenhänge, Rechtsgrundlagen, eigene Notizen |
 | **Zusammenhänge** | Zwei Themen wählen → Weg durch die Landkarte + direkte Abgrenzung |
 | **Schaubilder** | Interaktive Darstellungen: Gartenzaunprinzip, Steuerungskette (SMGW/CLS/GWA), präventiv vs. netzorientiert, § 14a-Deal, Netzentgelt-Module, Flexibilitätssignale, Solarspitzengesetz – auch direkt auf den passenden Themenseiten |
+| **Gesetze** | EnWG · MsbG · EEG im Vergleich: Leitfragen, Mengendiagramm der Überschneidungen, Paragrafen-Landkarte mit Suche |
 | **Zeitstrahl** | Was gilt seit wann, welche Fristen kommen |
 | **Einordnen (KI)** | Claude erklärt im Kontext der Landkarte und schlägt neue Themen/Verbindungen vor (per Klick übernehmen) |
 
@@ -31,6 +32,10 @@ Startwissen u. a.: § 14a EnWG, präventives vs. netzorientiertes Steuern, Garte
    - Claude-API-Schlüssel (https://platform.claude.com/settings/keys)
 2. GitHub Pages: *Settings → Pages → Source: GitHub Actions*. Hinweis: Pages für **private** Repos erfordert GitHub Pro. Alternativ lokal starten.
 
+## Startwissen erweitern
+
+`INITIAL_KNOWLEDGE.version` in `src/data/initialKnowledge.ts` erhöhen. Beim nächsten Laden ergänzt die App neue Basis-Themen und -Beziehungen in der gespeicherten Landkarte und aktualisiert unveränderte Basis-Themen. Eigene oder bearbeitete Themen und Notizen bleiben erhalten.
+
 ## Lokal starten
 
 ```bash
@@ -45,6 +50,7 @@ src/
   data/initialKnowledge.ts   Startwissen (Themen + Beziehungen)
   data/categories.ts         Ebenen und Beziehungstypen
   data/milestones.ts         Stichtage für den Zeitstrahl
+  data/paragraphs.ts         Paragrafen-Auswahl EnWG/MsbG/EEG (⚠ = Nummer prüfen)
   components/diagrams/       Interaktive Schaubilder + registry.ts (welches Schaubild zu welchem Thema)
   services/assistant.ts      Claude-Anbindung, System-Prompt, Vorschlags-Werkzeug
   services/githubStorage.ts  Laden/Speichern im Repo
