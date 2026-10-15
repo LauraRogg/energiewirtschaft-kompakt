@@ -8,9 +8,11 @@ Ziel: neue Gesetze, Festlegungen und Innovationen schnell **einordnen**, **verkn
 | Ansicht | Wofür |
 |---|---|
 | **Übersicht** | Einstieg: Frage stellen, Ebenen der Energiewirtschaft, Themen „in Bewegung“ |
-| **Big Picture** | Netzwerk aller Themen, farbig nach Ebene; Klick zeigt Verbindungen mit Erklärung |
+| **Big Picture** | Netzwerk aller Themen, farbig nach Ebene – frei oder nach Ebenen geordnet; Klick zeigt Verbindungen mit Erklärung |
 | **Themen** | Erklärung, „Zum Merken“, Abgrenzungen, Zusammenhänge, Rechtsgrundlagen, eigene Notizen |
 | **Zusammenhänge** | Zwei Themen wählen → Weg durch die Landkarte + direkte Abgrenzung |
+| **Schaubilder** | Interaktive Darstellungen: Gartenzaunprinzip, Steuerungskette (SMGW/CLS/GWA), präventiv vs. netzorientiert, § 14a-Deal, Netzentgelt-Module, Flexibilitätssignale, Solarspitzengesetz – auch direkt auf den passenden Themenseiten |
+| **Zeitstrahl** | Was gilt seit wann, welche Fristen kommen |
 | **Einordnen (KI)** | Claude erklärt im Kontext der Landkarte und schlägt neue Themen/Verbindungen vor (per Klick übernehmen) |
 
 Startwissen u. a.: § 14a EnWG, präventives vs. netzorientiertes Steuern, Gartenzaunprinzip, SteuVE, iMSys/mME/SMGW, GWA, CLS, Steuerbox, EEBUS, MsbG, Netzzustandsermittlung, Netzentgelt-Module, dynamische Tarife, § 14c, Redispatch 2.0, Solarspitzengesetz.
@@ -42,6 +44,8 @@ npm run dev
 src/
   data/initialKnowledge.ts   Startwissen (Themen + Beziehungen)
   data/categories.ts         Ebenen und Beziehungstypen
+  data/milestones.ts         Stichtage für den Zeitstrahl
+  components/diagrams/       Interaktive Schaubilder + registry.ts (welches Schaubild zu welchem Thema)
   services/assistant.ts      Claude-Anbindung, System-Prompt, Vorschlags-Werkzeug
   services/githubStorage.ts  Laden/Speichern im Repo
   store/useStore.ts          App-Zustand

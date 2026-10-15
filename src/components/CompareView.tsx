@@ -74,7 +74,7 @@ export default function CompareView({ store }: { store: Store }) {
                       <ArrowDown size={16} className="text-slate-400 mt-0.5 shrink-0" />
                       <div className="text-sm"><span className="font-medium text-sky-700">{s.label}</span><span className="text-slate-500"> – {s.relation.explanation}</span></div>
                     </div>
-                    <button onClick={() => openTopic(s.to.id)} className="block w-full text-left rounded-xl bg-white border border-slate-200 px-4 py-3 font-medium hover:shadow-sm" style={{ color: CATEGORY_BY_ID[s.to.category].color }}>{s.to.title}</button>
+                    <button onClick={() => openTopic(s.to.id)} className="flex items-center gap-2 w-full text-left rounded-xl bg-white border border-slate-200 px-4 py-3 font-medium text-slate-800 hover:shadow-sm"><span className="w-2.5 h-2.5 rounded-full" style={{ background: CATEGORY_BY_ID[s.to.category].color }} />{s.to.title}</button>
                   </li>
                 ))}
               </ol>

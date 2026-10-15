@@ -8,6 +8,8 @@ import { useStore } from './store/useStore';
 
 const BigPicture = lazy(() => import('./components/BigPicture'));
 const AssistantView = lazy(() => import('./components/AssistantView'));
+const DiagramsView = lazy(() => import('./components/DiagramsView'));
+const TimelineView = lazy(() => import('./components/TimelineView'));
 
 export default function App() {
   const store = useStore();
@@ -31,6 +33,8 @@ export default function App() {
           {store.view === 'bigpicture' && <BigPicture store={store} />}
           {store.view === 'thema' && <TopicView store={store} />}
           {store.view === 'vergleich' && <CompareView store={store} />}
+          {store.view === 'schaubilder' && <DiagramsView store={store} />}
+          {store.view === 'zeitstrahl' && <TimelineView store={store} />}
           {store.view === 'assistent' && <AssistantView store={store} onOpenSettings={() => setShowSettings(true)} />}
         </Suspense>
       </Layout>

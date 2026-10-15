@@ -6,12 +6,15 @@ import { CATEGORIES, CATEGORY_BY_ID, RELATION_TYPES } from '../data/categories';
 import { connectionsOf, matches } from '../utils';
 import { CategoryBadge, StatusBadge } from './Badges';
 import TopicForm from './TopicForm';
+import { DiagramFrame } from './DiagramsView';
+import { diagramsForTopic } from './diagrams/registry';
 
 export default function TopicView({ store }: { store: Store }) {
   const { kb, selectedId, setSelectedId, askAssistant, deleteTopic, upsertTopic, addRelation, deleteRelation } = store;
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<Topic | 'new' | null>(null);
   const [linking, setLinking] = useState(false);
+  const [extraDiagram, setExtraDiagram] = useState<string | null>(null);
 
   const topic = kb.topics.find(t => t.id === selectedId) ?? kb.topics[0];
   const grouped = useMemo(
@@ -19,6 +22,10 @@ export default function TopicView({ store }: { store: Store }) {
     [kb.topics, query],
   );
   const conns = topic ? connectionsOf(kb, topic.id) : [];
+  const diagrams = topic ? diagramsForTopic(topic.id) : [];
+  // Hauptschaubild: das, dessen erstes Thema dieses ist – sonst das erste passende
+  const mainDiagram = diagrams.find(d => d.topics[0] === topic?.id) ?? diagrams[0];
+  const otherDiagrams = diagrams.filter(d => d !== mainDiagram);
   const abgrenzungen = conns.filter(c => c.relation.type === 'abgrenzung');
   const others = conns.filter(c => c.relation.type !== 'abgrenzung');
 
@@ -35,7 +42,7 @@ export default function TopicView({ store }: { store: Store }) {
         <div className="flex-1 overflow-y-auto py-2">
           {grouped.filter(g => g.topics.length).map(({ c, topics }) => (
             <div key={c.id} className="mb-2">
-              <div className="px-4 py-1 text-xs font-medium uppercase tracking-wide" style={{ color: c.color }}>{c.label}</div>
+              <div className="px-4 py-1 text-xs font-medium uppercase tracking-wide text-slate-500 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: c.color }} />{c.label}</div>
               {topics.map(t => (
                 <button key={t.id} onClick={() => setSelectedId(t.id)} className={`block w-full text-left px-4 py-1.5 text-sm truncate ${t.id === topic?.id ? 'bg-slate-100 font-medium text-slate-900' : 'text-slate-600 hover:bg-slate-50'}`}>
                   {t.title}
@@ -70,6 +77,20 @@ export default function TopicView({ store }: { store: Store }) {
               {topic.explanation.split(/\n\s*\n/).map((p, i) => <p key={i} className="whitespace-pre-line">{p}</p>)}
             </section>
 
+            {mainDiagram && <DiagramFrame key={`${topic.id}-${mainDiagram.id}`} id={mainDiagram.id} onOpenTopic={setSelectedId} compact />}
+
+            {otherDiagrams.length > 0 && (
+              <section className="space-y-3">
+                <div className="flex flex-wrap gap-2 items-center text-sm">
+                  <span className="text-slate-500">Weitere Schaubilder:</span>
+                  {otherDiagrams.map(d => (
+                    <button key={d.id} onClick={() => setExtraDiagram(extraDiagram === d.id ? null : d.id)} className={`rounded-full px-3 py-1 border ${extraDiagram === d.id ? 'bg-[#0b2540] text-white border-[#0b2540]' : 'border-slate-300 text-slate-700 hover:bg-slate-50'}`}>{d.title}</button>
+                  ))}
+                </div>
+                {extraDiagram && otherDiagrams.some(d => d.id === extraDiagram) && <DiagramFrame id={extraDiagram} onOpenTopic={setSelectedId} compact />}
+              </section>
+            )}
+
             {topic.keyFacts.length > 0 && (
               <section className="rounded-2xl bg-amber-50 border border-amber-200 p-5">
                 <h2 className="flex items-center gap-2 font-medium text-amber-900 mb-3"><Lightbulb size={18} />Zum Merken</h2>
@@ -102,7 +123,7 @@ export default function TopicView({ store }: { store: Store }) {
                 {others.map(c => (
                   <div key={c.relation.id} className="group rounded-xl border border-slate-200 bg-white p-4 relative">
                     <div className="text-xs text-slate-500">{topic.short ?? topic.title} {c.label}</div>
-                    <button onClick={() => setSelectedId(c.other.id)} className="font-medium text-left hover:underline" style={{ color: CATEGORY_BY_ID[c.other.category].color }}>{c.other.title}</button>
+                    <button onClick={() => setSelectedId(c.other.id)} className="font-medium text-left text-slate-800 hover:underline flex items-center gap-1.5"><span className="w-2 h-2 rounded-full shrink-0" style={{ background: CATEGORY_BY_ID[c.other.category].color }} />{c.other.title}</button>
                     <p className="text-sm text-slate-600 mt-1">{c.relation.explanation}</p>
                     <button onClick={() => deleteRelation(c.relation.id)} title="Verbindung entfernen" className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500"><X size={14} /></button>
                   </div>

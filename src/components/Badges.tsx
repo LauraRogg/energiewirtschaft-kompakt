@@ -4,7 +4,7 @@ import { CATEGORY_BY_ID, STATUS_LABEL } from '../data/categories';
 export function CategoryBadge({ id }: { id: CategoryId }) {
   const c = CATEGORY_BY_ID[id];
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: `${c.color}1a`, color: c.color }}>
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full text-slate-700" style={{ background: `${c.color}1f` }}>
       <span className="w-2 h-2 rounded-full" style={{ background: c.color }} />
       {c.label}
     </span>

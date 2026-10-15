@@ -7,7 +7,38 @@ import { CATEGORIES, CATEGORY_BY_ID } from '../data/categories';
 import { connectionsOf, matches } from '../utils';
 import { CategoryBadge, StatusBadge } from './Badges';
 
-interface GNode { id: string; label: string; color: string; degree: number; x?: number; y?: number }
+interface GNode { id: string; label: string; color: string; degree: number; lane: number; x?: number; y?: number; fx?: number; fy?: number }
+
+type Layout = 'netz' | 'ebenen';
+const LANE = 110;
+const SLOT = 175;
+
+/** Feste Anordnung je Ebene: Reihenfolge per Schwerpunkt-Heuristik, damit sich wenige Linien kreuzen. */
+function laneLayout(nodes: GNode[], links: { source: string; target: string }[]): Map<string, number> {
+  const nb = new Map<string, string[]>();
+  links.forEach(l => {
+    nb.set(l.source, [...(nb.get(l.source) ?? []), l.target]);
+    nb.set(l.target, [...(nb.get(l.target) ?? []), l.source]);
+  });
+  const byLane = new Map<number, GNode[]>();
+  nodes.forEach(n => byLane.set(n.lane, [...(byLane.get(n.lane) ?? []), n]));
+  const x = new Map<string, number>();
+  const place = () => byLane.forEach(list => list.forEach((n, i) => x.set(n.id, (i - (list.length - 1) / 2) * SLOT)));
+  byLane.forEach(list => list.sort((a, b) => a.label.localeCompare(b.label)));
+  place();
+  for (let it = 0; it < 6; it++) {
+    byLane.forEach(list => {
+      const bary = (n: GNode) => {
+        const ns = (nb.get(n.id) ?? []).filter(id => x.has(id));
+        return ns.length ? ns.reduce((s, id) => s + x.get(id)!, 0) / ns.length : x.get(n.id)!;
+      };
+      const b = new Map(list.map(n => [n.id, bary(n)]));
+      list.sort((p, q) => b.get(p.id)! - b.get(q.id)!);
+    });
+    place();
+  }
+  return x;
+}
 interface GLink { source: string | GNode; target: string | GNode; label: string }
 
 const endId = (e: string | GNode) => (typeof e === 'string' ? e : e.id);
@@ -22,6 +53,7 @@ export default function BigPicture({ store }: { store: Store }) {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const [layout, setLayout] = useState<Layout>('netz');
 
   useEffect(() => {
     if (!wrap.current) return;
@@ -41,9 +73,21 @@ export default function BigPicture({ store }: { store: Store }) {
       degree.set(endId(l.source), (degree.get(endId(l.source)) ?? 0) + 1);
       degree.set(endId(l.target), (degree.get(endId(l.target)) ?? 0) + 1);
     });
-    const nodes: GNode[] = visible.map(t => ({ id: t.id, label: t.short ?? t.title, color: CATEGORY_BY_ID[t.category].color, degree: degree.get(t.id) ?? 0 }));
-    return { nodes, links };
-  }, [kb, hidden]);
+    const lanes = CATEGORIES.filter(c => !hidden.has(c.id)).map(c => c.id);
+    const nodes: GNode[] = visible.map(t => {
+      const lane = lanes.indexOf(t.category);
+      return {
+        id: t.id, label: t.short ?? t.title, color: CATEGORY_BY_ID[t.category].color, degree: degree.get(t.id) ?? 0, lane,
+        // In der Ebenen-Ansicht liegt jedes Thema fest auf der Zeile seiner Ebene
+        fy: layout === 'ebenen' ? lane * LANE : undefined,
+      };
+    });
+    if (layout === 'ebenen') {
+      const xs = laneLayout(nodes, links.map(l => ({ source: endId(l.source), target: endId(l.target) })));
+      nodes.forEach(n => { n.fx = xs.get(n.id); n.x = n.fx; n.y = n.fy; });
+    }
+    return { nodes, links, lanes };
+  }, [kb, hidden, layout]);
 
   // Mehr Abstand zwischen den Knoten, damit Beschriftungen lesbar bleiben
   useEffect(() => {
@@ -83,12 +127,16 @@ export default function BigPicture({ store }: { store: Store }) {
           <Search size={16} className="absolute left-3 top-2.5 text-slate-400" />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Thema suchen …" className="pl-9 pr-3 py-2 rounded-lg border border-slate-300 text-sm w-56" />
         </div>
+        <div className="inline-flex rounded-lg border border-slate-300 overflow-hidden text-sm mr-2">
+          <button onClick={() => setLayout('netz')} className={`px-3 py-1.5 ${layout === 'netz' ? 'bg-[#0b2540] text-white' : 'bg-white text-slate-700'}`}>Netz</button>
+          <button onClick={() => setLayout('ebenen')} className={`px-3 py-1.5 ${layout === 'ebenen' ? 'bg-[#0b2540] text-white' : 'bg-white text-slate-700'}`}>Ebenen</button>
+        </div>
         {CATEGORIES.map(c => (
           <button
             key={c.id}
             onClick={() => toggle(c.id)}
-            className={`text-xs rounded-full px-3 py-1.5 border flex items-center gap-1.5 transition-opacity ${hidden.has(c.id) ? 'opacity-40' : ''}`}
-            style={{ borderColor: c.color, color: c.color }}
+            className={`text-xs text-slate-700 rounded-full px-3 py-1.5 border flex items-center gap-1.5 transition-opacity ${hidden.has(c.id) ? 'opacity-40' : ''}`}
+            style={{ borderColor: c.color }}
           >
             <span className="w-2 h-2 rounded-full" style={{ background: c.color }} />{c.label}
           </button>
@@ -103,6 +151,24 @@ export default function BigPicture({ store }: { store: Store }) {
           height={size.h}
           graphData={data}
           cooldownTicks={120}
+          onRenderFramePre={(ctx: CanvasRenderingContext2D, scale: number) => {
+            if (layout !== 'ebenen') return;
+            const xs = data.nodes.map(n => n.x ?? 0);
+            const minX = Math.min(...xs) - 60, maxX = Math.max(...xs) + 60;
+            data.lanes.forEach((id, i) => {
+              const c = CATEGORY_BY_ID[id];
+              const top = i * LANE - LANE / 2;
+              ctx.fillStyle = i % 2 ? '#f8fafc' : '#eef2f7';
+              ctx.fillRect(minX - 40, top, maxX - minX + 80, LANE);
+              ctx.fillStyle = c.color;
+              ctx.fillRect(minX - 40, top, 4 / scale, LANE);
+              ctx.font = `600 ${Math.max(11 / scale, 4)}px system-ui, sans-serif`;
+              ctx.textAlign = 'left';
+              ctx.textBaseline = 'top';
+              ctx.fillStyle = '#334155';
+              ctx.fillText(c.label, minX - 30, top + 6);
+            });
+          }}
           linkColor={(l: GLink) => (neighbors && !(neighbors.has(endId(l.source)) && neighbors.has(endId(l.target))) ? '#e2e8f0' : '#94a3b8')}
           linkWidth={(l: GLink) => (focus && (endId(l.source) === focus || endId(l.target) === focus) ? 2 : 1)}
           linkDirectionalArrowLength={4}

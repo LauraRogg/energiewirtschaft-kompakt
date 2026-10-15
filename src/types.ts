@@ -75,4 +75,4 @@ export interface KnowledgeBase {
   relations: Relation[];
 }
 
-export type View = 'dashboard' | 'bigpicture' | 'thema' | 'vergleich' | 'assistent';
+export type View = 'dashboard' | 'bigpicture' | 'thema' | 'vergleich' | 'schaubilder' | 'zeitstrahl' | 'assistent';

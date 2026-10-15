@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Sparkles, ArrowRight, Network, GitCompare } from 'lucide-react';
+import { Sparkles, ArrowRight, Network, GitCompare, Shapes } from 'lucide-react';
+import { DIAGRAMS } from './diagrams/registry';
 import type { Store } from '../store/useStore';
 import { CATEGORIES } from '../data/categories';
 import { StatusBadge } from './Badges';
@@ -60,6 +61,19 @@ export default function Dashboard({ store }: { store: Store }) {
       </section>
 
       <section>
+        <h2 className="text-lg font-semibold text-slate-800 mb-1">Schaubilder zum Ausprobieren</h2>
+        <p className="text-sm text-slate-500 mb-4">Interaktive Darstellungen – Regler bewegen, Modi umschalten, Schritte durchklicken.</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {DIAGRAMS.map(d => (
+            <button key={d.id} onClick={() => openTopic(d.topics[0])} className="text-left rounded-xl bg-white border border-slate-200 p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 font-medium text-slate-800"><Shapes size={16} className="text-slate-400" />{d.title}</div>
+              <div className="text-sm text-slate-500 mt-1">{d.question}</div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section>
         <h2 className="text-lg font-semibold text-slate-800 mb-1">Die Ebenen der Energiewirtschaft</h2>
         <p className="text-sm text-slate-500 mb-4">Jedes Thema liegt auf einer Ebene. Neues lässt sich leichter verstehen, wenn klar ist, auf welcher es liegt.</p>
         <div className="grid md:grid-cols-2 gap-4">
@@ -71,7 +85,7 @@ export default function Dashboard({ store }: { store: Store }) {
                 <div className="text-sm text-slate-500 mb-3">{c.description}</div>
                 <div className="flex flex-wrap gap-2">
                   {topics.map(t => (
-                    <button key={t.id} onClick={() => openTopic(t.id)} className="text-xs rounded-full px-3 py-1 border hover:shadow-sm" style={{ borderColor: `${c.color}55`, color: c.color }}>
+                    <button key={t.id} onClick={() => openTopic(t.id)} className="text-xs text-slate-700 rounded-full px-3 py-1 border hover:shadow-sm" style={{ borderColor: c.color }}>
                       {t.short ?? t.title}
                     </button>
                   ))}

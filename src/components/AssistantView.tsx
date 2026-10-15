@@ -168,7 +168,7 @@ function ProposalCard({ id, proposal, store }: { id: string; proposal: Proposal;
       <div className="text-sm font-medium text-slate-800 flex items-center gap-2"><Sparkles size={16} className="text-amber-500" />Vorschlag für deine Wissenslandkarte</div>
       {proposal.topics.map(t => (
         <div key={t.id} className="rounded-lg bg-white p-3 border border-slate-200">
-          <div className="text-xs font-medium" style={{ color: CATEGORY_BY_ID[t.category].color }}>Neues Thema · {CATEGORY_BY_ID[t.category].label}</div>
+          <div className="text-xs font-medium text-slate-500 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: CATEGORY_BY_ID[t.category].color }} />Neues Thema · {CATEGORY_BY_ID[t.category].label}</div>
           <div className="font-medium text-slate-800">{t.title}{t.short ? ` (${t.short})` : ''}</div>
           <div className="text-sm text-slate-600">{t.summary}</div>
         </div>
